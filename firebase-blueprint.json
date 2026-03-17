@@ -1,0 +1,65 @@
+{
+  "entities": {
+    "OTP": {
+      "title": "OTP",
+      "description": "A 4-digit one-time password for trip access.",
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "The 4-digit OTP code."
+        },
+        "isUsed": {
+          "type": "boolean",
+          "description": "Whether the OTP has been used."
+        },
+        "usedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the OTP was used."
+        },
+        "usedBy": {
+          "type": "string",
+          "description": "The UID of the user who used the OTP."
+        }
+      },
+      "required": ["code", "isUsed"]
+    },
+    "Trip": {
+      "title": "Trip",
+      "description": "A trip started by a user.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user."
+        },
+        "otpCode": {
+          "type": "string",
+          "description": "The OTP code used to start the trip."
+        },
+        "startedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the trip started."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "completed"],
+          "description": "Current status of the trip."
+        }
+      },
+      "required": ["userId", "otpCode", "startedAt", "status"]
+    }
+  },
+  "firestore": {
+    "otps": {
+      "schema": "OTP",
+      "description": "Collection of valid OTPs and their usage status."
+    },
+    "trips": {
+      "schema": "Trip",
+      "description": "Collection of trips started by users."
+    }
+  }
+}

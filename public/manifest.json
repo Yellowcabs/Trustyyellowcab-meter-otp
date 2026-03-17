@@ -1,0 +1,20 @@
+{
+  "short_name": "Trusty-Meter",
+  "name": "TrustyCabs-Meter",
+  "icons": [
+    {
+      "src": "/images/trusty-icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/images/trusty-icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#ef4444",
+  "background_color": "#F9FAFB"
+}

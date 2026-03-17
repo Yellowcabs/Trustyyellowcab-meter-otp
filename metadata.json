@@ -1,0 +1,7 @@
+{
+  "name": "Trip Access Manager",
+  "description": "A secure trip access system using 300 unique 4-digit codes. Each code can only be used once to start a trip.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

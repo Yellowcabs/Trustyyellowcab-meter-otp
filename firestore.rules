@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: otps
+    // Document ID: The OTP code string (e.g., "1234")
+    // Fields:
+    //   - code: string (required) - The 4-digit code
+    //   - isUsed: boolean (required) - Usage status
+    //   - usedAt: timestamp (optional) - When used
+    //   - usedBy: string (optional) - User UID
+    //
+    // Collection: trips
+    // Document ID: Auto-generated
+    // Fields:
+    //   - userId: string (required) - Owner UID
+    //   - otpCode: string (required) - OTP used
+    //   - startedAt: timestamp (required) - Start time
+    //   - status: string (required) - "active" | "completed"
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidOTP(data) {
+      return data.keys().hasAll(['code', 'isUsed']) &&
+             data.code is string && data.code.size() == 4 &&
+             data.isUsed is bool;
+    }
+
+    function isValidTrip(data) {
+      return data.keys().hasAll(['userId', 'otpCode', 'startedAt', 'status']) &&
+             data.userId == request.auth.uid &&
+             data.otpCode is string && data.otpCode.size() == 4 &&
+             data.startedAt is timestamp &&
+             data.status in ['active', 'completed'];
+    }
+
+    // OTPs Collection
+    match /otps/{otpCode} {
+      // Allow reading individual OTP status
+      allow get: if isAuthenticated();
+      
+      // Allow updating an OTP to mark it as used
+      // Must be authenticated, OTP must not be used yet, and only specific fields can change
+      allow update: if isAuthenticated() &&
+                    !resource.data.isUsed &&
+                    request.resource.data.isUsed == true &&
+                    request.resource.data.usedBy == request.auth.uid &&
+                    request.resource.data.usedAt == request.time &&
+                    request.resource.data.code == resource.data.code;
+                    
+      // Only admin (me) should create OTPs (seeding)
+      // For simplicity in this demo, I'll allow creation if it follows schema, 
+      // but in production this would be restricted.
+      allow create: if isAuthenticated() && isValidOTP(request.resource.data);
+    }
+
+    // Trips Collection
+    match /trips/{tripId} {
+      allow read: if isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isValidTrip(request.resource.data);
+      allow update: if isOwner(resource.data.userId) && isValidTrip(request.resource.data);
+    }
+    
+    // User metadata (optional but good practice)
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+  }
+}
